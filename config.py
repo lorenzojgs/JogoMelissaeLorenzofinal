@@ -34,3 +34,27 @@ SKY_BOT     = (180, 220, 255)  # Azul claro — ceu
 ORANGE      = (255, 140, 0)    # Laranja — luvas do goleiro
 LIGHT_GREEN = (124, 252, 0)    # Verde claro — mensagem de GOL!
 GOLD        = (255, 200, 0)    # Dourado — tela de vitoria
+# =============================================================================
+# PARTE 3 — CORES DAS CAMISAS E CONFIGURACOES DO GOL
+# Cores oficiais das selecoes Brasil e Alemanha
+# e posicao e tamanho do gol na tela
+# =============================================================================
+ 
+# Brasil — camisa amarela com detalhes verdes e calcao azul
+BRA_AMARELO = (250, 220,   0)  # Amarelo da camisa do Brasil
+BRA_VERDE   = (0,   155,  58)  # Verde da gola e do numero 10
+BRA_AZUL    = (0,    39, 118)  # Azul do calcao brasileiro
+ 
+# Alemanha — camisa preta com listras brancas e gola vermelha
+ALE_PRETO   = (20,   20,  20)  # Preto da camisa do goleiro alemao
+ALE_VERM    = (200,   0,  30)  # Vermelho da gola da camisa alema
+ 
+# Configuracoes do gol
+# O gol e centralizado horizontalmente usando WIDTH // 2
+# GOL_X e calculado para que o gol fique exatamente no meio da tela
+GOL_X = WIDTH  // 2 - 200  # Posicao X do canto esquerdo do gol
+GOL_W = 400                # Largura total do gol em pixels
+GOL_Y = 50                 # Distancia do topo da tela ate o gol
+GOL_H = 220                # Altura total do gol em pixels
+ 
+# =============================================================================
