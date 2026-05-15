@@ -58,3 +58,60 @@ GOL_Y = 50                 # Distancia do topo da tela ate o gol
 GOL_H = 220                # Altura total do gol em pixels
  
 # =============================================================================
+# PARTE 4 — REGRAS, ESTADOS E ZONAS DO GOL
+# Define a dificuldade do jogo, os estados possiveis
+# e as 9 zonas onde a bola pode ser chutada
+# =============================================================================
+ 
+# Regras do jogo — altere para deixar mais facil ou dificil
+MAX_COBRANÇAS    = 7   # Total de cobranças por partida
+GOLS_PARA_VENCER = 4   # Gols necessarios para vencer
+VIDAS_INICIO     = 3   # Vidas (erros permitidos) no inicio
+MAX_CHARGE       = 90  # Frames para carregar potencia maxima do chute
+ 
+# Estados do jogo
+# O jogo sempre esta em um desses estados
+# Cada estado define o que acontece e o que e desenhado na tela
+STATE_INTRO   = 'intro'    # Tela inicial com instrucoes de como jogar
+STATE_PLAYING = 'playing'  # Jogador esta cobrando o penalti agora
+STATE_RESULT  = 'result'   # Mostra GOL ou Defendido entre cobranças
+STATE_WIN     = 'win'      # Jogador fez gols suficientes — vitoria!
+STATE_LOSE    = 'lose'     # Jogador perdeu todas as vidas ou cobranças
+ 
+# Zonas do gol
+# O gol e dividido em 9 regioes onde a bola pode ser chutada
+# fx: 0.0 = extrema esquerda | 0.5 = centro | 1.0 = extrema direita
+# fy: 0.0 = topo do gol      | 0.5 = meio   | 1.0 = base do gol
+ZONAS = {
+    'canto_sup_esq': (0.12, 0.18),  # Canto superior esquerdo
+    'centro_esq':    (0.12, 0.60),  # Meio do lado esquerdo
+    'canto_inf_esq': (0.12, 0.88),  # Canto inferior esquerdo
+    'centro_alto':   (0.50, 0.18),  # Centro do gol no alto
+    'centro':        (0.50, 0.55),  # Centro exato do gol (sempre gol!)
+    'centro_baixo':  (0.50, 0.88),  # Centro do gol embaixo
+    'canto_sup_dir': (0.88, 0.18),  # Canto superior direito
+    'centro_dir':    (0.88, 0.60),  # Meio do lado direito
+    'canto_inf_dir': (0.88, 0.88),  # Canto inferior direito
+}
+ 
+# Nomes das zonas para mostrar na tela durante o carregamento do chute
+NOMES_ZONA = {
+    'canto_sup_esq': 'Canto sup. esq',
+    'centro_esq':    'Centro esq',
+    'canto_inf_esq': 'Canto inf. esq',
+    'centro_alto':   'Centro alto',
+    'centro':        'Centro',
+    'centro_baixo':  'Centro baixo',
+    'canto_sup_dir': 'Canto sup. dir',
+    'centro_dir':    'Centro dir',
+    'canto_inf_dir': 'Canto inf. dir',
+}
+ 
+# Zonas centrais — goleiro NUNCA pula para o centro, entao sao sempre gol
+ZONAS_CENTRO = ('centro', 'centro_alto', 'centro_baixo')
+ 
+# Zonas laterais — goleiro pode mergulhar para qualquer uma dessas regioes
+ZONAS_GOLEIRO = [
+    'canto_sup_esq', 'centro_esq', 'canto_inf_esq',
+    'canto_sup_dir', 'centro_dir', 'canto_inf_dir',
+]
