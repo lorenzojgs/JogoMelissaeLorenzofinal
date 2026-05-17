@@ -157,4 +157,116 @@ class Bola(pygame.sprite.Sprite):
         self.spin  = 0
         self._atualizar_image()
 # =============================================================================
-
+# PARTE 2 — CLASSE JOGADOR
+# Representa o cobrador com camisa amarela do Brasil numero 10
+# Quando chutando, a perna e levantada para mostrar o movimento
+# A barra de potencia aparece acima do jogador ao carregar o chute
+# =============================================================================
+class Jogador(pygame.sprite.Sprite):
+    """
+    Sprite do jogador cobrador com camisa do Brasil (#10).
+ 
+    O jogador e desenhado com:
+    - Camisa amarela com gola verde e numero 10 em verde
+    - Calcao azul escuro
+    - Chuteiras pretas
+    - Animacao de perna levantada ao chutar
+    - Barra de potencia ao carregar o chute
+ 
+    Attributes
+    ----------
+    chutando : bool
+        True quando o jogador esta na animacao de chute.
+    charge : int
+        Nivel de carga da potencia (0 a MAX_CHARGE).
+    """
+ 
+    def __init__(self, x, y):
+        """
+        Inicializa o jogador na posicao (x, y).
+ 
+        Parameters
+        ----------
+        x, y : int
+            Posicao central do jogador na tela.
+        """
+        super().__init__()
+        self.pos_x    = x      # Posicao horizontal
+        self.pos_y    = y      # Posicao vertical
+        self.chutando = False  # Estado inicial: nao esta chutando
+        self.charge   = 0     # Carga inicial da potencia: zero
+        self._desenhar()       # Desenha o jogador pela primeira vez
+ 
+    def _desenhar(self):
+        """
+        Gera a surface do jogador conforme o estado atual.
+        Redesenhado sempre que chutando ou charge mudam.
+        """
+        surf = pygame.Surface((60, 120), pygame.SRCALPHA)
+        cx = 30  # Centro horizontal da surface
+ 
+        # Sombra no chao embaixo do jogador
+        pygame.draw.ellipse(surf, (0, 80, 0, 100), (cx - 20, 108, 40, 10))
+ 
+        # Pernas — muda conforme esta chutando ou nao
+        if self.chutando:
+            # Perna direita levantada para simular o chute
+            pygame.draw.line(surf, BRA_AZUL, (cx - 5, 70), (cx + 26, 48), 10)
+            pygame.draw.rect(surf, ALE_PRETO, (cx + 18, 42, 16, 10))  # Chuteira
+            pygame.draw.rect(surf, BRA_AZUL,  (cx - 17, 70, 14, 33))  # Perna esq
+            pygame.draw.rect(surf, ALE_PRETO, (cx - 18, 99, 16, 10))  # Chuteira esq
+        else:
+            # Posicao normal com as duas pernas no chao
+            pygame.draw.rect(surf, BRA_AZUL,  (cx - 17, 70, 14, 33))  # Perna esq
+            pygame.draw.rect(surf, BRA_AZUL,  (cx + 3,  70, 14, 33))  # Perna dir
+            pygame.draw.rect(surf, ALE_PRETO, (cx - 18, 99, 16, 10))  # Chuteira esq
+            pygame.draw.rect(surf, ALE_PRETO, (cx + 2,  99, 16, 10))  # Chuteira dir
+ 
+        # Meias brancas acima das chuteiras
+        pygame.draw.rect(surf, WHITE, (cx - 17, 90, 13, 10))
+        pygame.draw.rect(surf, WHITE, (cx + 3,  90, 13, 10))
+ 
+        # Camisa amarela do Brasil com gola verde
+        pygame.draw.rect(surf, BRA_AMARELO, (cx - 17, 26, 34, 46))  # Corpo amarelo
+        pygame.draw.rect(surf, BRA_VERDE,   (cx - 17, 26, 34,  8))  # Gola verde
+ 
+        # Numero 10 em verde no centro da camisa
+        fn = pygame.font.SysFont('Arial', 13, bold=True)
+        surf.blit(fn.render('10', True, BRA_VERDE), (cx - 8, 38))
+ 
+        # Cabeca com tom de pele e cabelo escuro
+        pygame.draw.circle(surf, (220, 180, 140), (cx, 18), 15)      # Cabeca
+        pygame.draw.arc(surf, (60, 30, 10),
+                        (cx - 15, 3, 30, 20), 0, math.pi, 5)         # Cabelo
+ 
+        # Barra de potencia — aparece acima do jogador ao carregar o chute
+        if self.charge > 0:
+            pct  = self.charge / MAX_CHARGE                           # Percentual de carga
+            cor  = (int(255 * pct), int(255 * (1 - pct)), 0)         # Verde -> Vermelho
+            pygame.draw.rect(surf, DARK_GRAY, (cx - 34, 0, 68, 10),
+                             border_radius=4)                          # Fundo cinza
+            pygame.draw.rect(surf, cor,
+                             (cx - 34, 0, int(68 * pct), 10),
+                             border_radius=4)                          # Barra colorida
+            fnt = pygame.font.SysFont('Arial', 10)
+            surf.blit(fnt.render('POTENCIA', True, WHITE), (cx - 24, -12))
+ 
+        self.image = surf
+        self.rect  = self.image.get_rect(midbottom=(self.pos_x, self.pos_y + 60))
+ 
+    def update(self, chutando=False, charge=0):
+        """
+        Atualiza o estado visual do jogador.
+ 
+        Parameters
+        ----------
+        chutando : bool
+            Se True, exibe a perna levantada.
+        charge : int
+            Nivel atual de carga da potencia (0 a MAX_CHARGE).
+        """
+        self.chutando = chutando
+        self.charge   = charge
+        self._desenhar()
+ # =============================================================================
+ 
