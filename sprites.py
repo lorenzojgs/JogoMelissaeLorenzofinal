@@ -40,11 +40,11 @@ def zona_para_pixel(zona):
     return int(GOL_X + GOL_W * fx), int(GOL_Y + GOL_H * fy)
 
 
-# =============================================================================
-# PARTE 1 — CLASSE BOLA
+
+
 # Representa a bola de futebol na tela.
 # A bola gira e cresce conforme se aproxima do gol (perspectiva)
-# =============================================================================
+
 class Bola(pygame.sprite.Sprite):
     """
     Sprite da bola de futebol.
@@ -268,5 +268,164 @@ class Jogador(pygame.sprite.Sprite):
         self.chutando = chutando
         self.charge   = charge
         self._desenhar()
- # =============================================================================
+
+
+# Representa o goleiro com camisa preta da Alemanha numero 1
+# O goleiro anda de lado a lado enquanto espera o chute
+# Ao defender, mergulha em direcao a zona escolhida
+# Fica mais rapido a cada cobranca 
+
+class Goleiro(pygame.sprite.Sprite):
+    """
+    Sprite do goleiro com camisa da Alemanha (#1).
  
+    O goleiro e desenhado com:
+    - Camisa preta com listras brancas e gola vermelha
+    - Luvas douradas
+    - Cabelo loiro (jogador europeu)
+    - Animacao de mergulho ao defender
+ 
+    Attributes
+    ----------
+    pos_x : float
+        Posicao x atual (float para movimento suave).
+    pos_y : int
+        Posicao y fixa na frente do gol.
+    vel : float
+        Velocidade base de deslocamento lateral.
+    direcao : int
+        +1 (vai para direita) ou -1 (vai para esquerda).
+    diving : str or None
+        Zona para onde o goleiro esta mergulhando.
+    dive_t : float
+        Progresso do mergulho de 0.0 a 1.0.
+    """
+ 
+    # Limites de movimento lateral do goleiro dentro do gol
+    LIM_ESQ = GOL_X + 60        # Nao pode ir mais para a esquerda que isso
+    LIM_DIR = GOL_X + GOL_W - 60  # Nao pode ir mais para a direita que isso
+ 
+    def __init__(self):
+        """Inicializa o goleiro no centro do gol."""
+        super().__init__()
+        self.pos_x    = float(WIDTH // 2)  # Comeca no centro
+        self.pos_y    = 190                # Altura fixa na frente do gol
+        self.vel      = 2.0               # Velocidade base
+        self.direcao  = 1                 # Comeca indo para a direita
+        self.diving   = None              # Sem mergulho inicial
+        self.dive_t   = 0.0              # Progresso do mergulho
+        self._desenhar()
+ 
+    def _desenhar(self):
+        """
+        Gera a surface do goleiro com rotacao de mergulho.
+        Calcula o deslocamento e angulo baseado no progresso do mergulho.
+        """
+        ox, oy, angle = 0, 0, 0  # Deslocamento e angulo iniciais
+ 
+        # Se estiver mergulhando, calcula o deslocamento e rotacao
+        if self.diving and self.diving in ZONAS:
+            fx, fy = ZONAS[self.diving]
+            lado  =  1 if fx > 0.5 else -1   # +1 = direita, -1 = esquerda
+            alt   =  1 if fy > 0.5 else -1   # +1 = baixo, -1 = alto
+            ox    = int(lado * 165 * self.dive_t)   # Deslocamento horizontal
+            oy    = int(alt  *  55 * self.dive_t) - int(
+                35 * math.sin(math.pi * self.dive_t) * (-alt))  # Vertical com arco
+            angle = lado * 65 * self.dive_t   # Rotacao do corpo
+ 
+        surf = pygame.Surface((100, 125), pygame.SRCALPHA)
+ 
+        # Sombra no chao
+        pygame.draw.ellipse(surf, (0, 0, 0, 60), (20, 112, 60, 12))
+ 
+        # Calcao preto e meias brancas
+        pygame.draw.rect(surf, ALE_PRETO, (28, 76, 18, 32))   # Perna esq
+        pygame.draw.rect(surf, ALE_PRETO, (52, 76, 18, 32))   # Perna dir
+        pygame.draw.rect(surf, WHITE,     (28, 96, 18, 12))   # Meia esq
+        pygame.draw.rect(surf, WHITE,     (52, 96, 18, 12))   # Meia dir
+ 
+        # Camisa preta com listras brancas nas laterais e gola vermelha
+        pygame.draw.rect(surf, ALE_PRETO, (28, 30, 42, 48))   # Corpo preto
+        pygame.draw.rect(surf, WHITE,     (28, 30,  5, 48))   # Listra esquerda
+        pygame.draw.rect(surf, WHITE,     (65, 30,  5, 48))   # Listra direita
+        pygame.draw.rect(surf, ALE_VERM,  (28, 30, 42,  7))   # Gola vermelha
+ 
+        # Numero 1 em branco no centro da camisa
+        fn = pygame.font.SysFont('Arial', 15, bold=True)
+        surf.blit(fn.render('1', True, WHITE), (44, 40))
+ 
+        # Luvas douradas com detalhe mais escuro
+        pygame.draw.circle(surf, GOLD,          (10, 52), 13)   # Luva esq
+        pygame.draw.circle(surf, GOLD,          (88, 52), 13)   # Luva dir
+        pygame.draw.circle(surf, (200, 160, 0), (10, 52),  8)   # Detalhe esq
+        pygame.draw.circle(surf, (200, 160, 0), (88, 52),  8)   # Detalhe dir
+ 
+        # Cabeca com tom de pele claro e cabelo loiro
+        pygame.draw.circle(surf, (255, 225, 195), (49, 18), 16)  # Cabeca
+        pygame.draw.arc(surf, (220, 180, 50),
+                        (34, 3, 30, 18), 0, math.pi, 5)          # Cabelo loiro
+ 
+        # Aplica a rotacao do mergulho e posiciona na tela
+        rot  = pygame.transform.rotate(surf, angle)
+        self.image = rot
+        self.rect  = rot.get_rect(
+            center=(int(self.pos_x) + ox, self.pos_y + oy))
+ 
+    def update(self, aguardando=True, velocidade_extra=0):
+        """
+        Atualiza posicao e animacao do goleiro a cada frame.
+ 
+        Quando aguardando=True, o goleiro anda de lado a lado.
+        A velocidade aumenta conforme velocidade_extra (dificuldade progressiva).
+ 
+        Parameters
+        ----------
+        aguardando : bool
+            Se True, o goleiro anda de lado a lado esperando o chute.
+        velocidade_extra : float
+            Velocidade adicional conforme avanca a partida.
+        """
+        if aguardando:
+            vel = self.vel + velocidade_extra  # Velocidade total
+            self.pos_x += vel * self.direcao   # Move na direcao atual
+            # Inverte a direcao ao atingir os limites do gol
+            if self.pos_x > self.LIM_DIR:
+                self.pos_x   = self.LIM_DIR
+                self.direcao = -1
+            elif self.pos_x < self.LIM_ESQ:
+                self.pos_x   = self.LIM_ESQ
+                self.direcao = 1
+        self._desenhar()
+ 
+    def iniciar_mergulho(self, zona):
+        """
+        Inicia a animacao de mergulho para uma zona do gol.
+ 
+        Parameters
+        ----------
+        zona : str
+            Zona do gol para onde o goleiro vai mergulhar.
+        """
+        self.diving = zona
+        self.dive_t = 0.0
+ 
+    def avancar_mergulho(self, progresso):
+        """
+        Avanca o progresso da animacao de mergulho.
+ 
+        Parameters
+        ----------
+        progresso : float
+            Valor de 0.0 a 1.0 representando o progresso do mergulho.
+        """
+        self.dive_t = min(1.0, progresso)
+        self._desenhar()
+ 
+    def resetar(self):
+        """Reseta o goleiro para o estado de espera apos cada cobranca."""
+        self.diving  = None
+        self.dive_t  = 0.0
+        self._desenhar()
+ 
+ 
+
