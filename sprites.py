@@ -426,6 +426,95 @@ class Goleiro(pygame.sprite.Sprite):
         self.diving  = None
         self.dive_t  = 0.0
         self._desenhar()
+ # =============================================================================
+# Exibe o HUD do jogo: gols marcados, numero da cobranca e vidas restantes
+# As vidas sao representadas por coracoes vermelhos no canto superior direito
+# O placar e atualizado apos cada cobranca
+# =============================================================================
+class Placar(pygame.sprite.Sprite):
+    """
+    Sprite do HUD com gols, cobranças e vidas (coracoes).
  
+    Exibido no topo da tela durante toda a partida.
+    Usa um fundo semi-transparente para nao atrapalhar o cenario.
+ 
+    Attributes
+    ----------
+    gols : int
+        Numero de gols marcados ate agora.
+    vidas : int
+        Numero de vidas restantes (coracoes).
+    cobranca : int
+        Numero da cobranca atual.
+    max_cob : int
+        Numero maximo de cobranças na partida.
+    """
+ 
+    def __init__(self, max_cob):
+        """
+        Inicializa o placar com valores zerados.
+ 
+        Parameters
+        ----------
+        max_cob : int
+            Numero maximo de cobranças da partida (vem do config.py).
+        """
+        super().__init__()
+        self.gols     = 0        
+        self.vidas    = VIDAS_INICIO  
+        self.cobranca = 0        # Primeira cobranca
+        self.max_cob  = max_cob  # Total de cobranças da partida
+        self._font    = pygame.font.SysFont('Arial', 20)
+        self._desenhar()
+ 
+    def _desenhar(self):
+        """
+        Reconstroi a surface do HUD com os valores atuais.
+        Chamado sempre que os valores mudam.
+        """
+        # Fundo semi-transparente para o HUD
+        surf = pygame.Surface((WIDTH, 52), pygame.SRCALPHA)
+        surf.fill((0, 0, 0, 140))  # Preto com 140/255 de opacidade
+ 
+        # Texto de gols no lado esquerdo
+        g_txt = self._font.render(
+            f'Gols: {self.gols}/{GOLS_PARA_VENCER}', True, LIGHT_GREEN)
+        # Texto de cobranca no centro
+        c_txt = self._font.render(
+            f'Cobranca: {self.cobranca}/{self.max_cob}', True, WHITE)
+ 
+        surf.blit(g_txt, (20, 13))
+        surf.blit(c_txt, c_txt.get_rect(center=(WIDTH // 2, 26)))
+ 
+        # Coracoes representando as vidas — desenhados da direita para esquerda
+        for i in range(self.vidas):
+            hx = WIDTH - 22 - i * 38  # Posicao horizontal de cada coracao
+            # Dois circulos + triangulo formam o formato de coracao
+            pygame.draw.circle(surf, RED, (hx - 9, 24), 10)
+            pygame.draw.circle(surf, RED, (hx + 9, 24), 10)
+            pygame.draw.polygon(surf, RED,
+                                [(hx - 18, 28), (hx + 18, 28), (hx, 44)])
+ 
+        self.image = surf
+        self.rect  = self.image.get_rect(topleft=(0, 0))
+ 
+    def atualizar(self, gols, vidas, cobranca):
+        """
+        Atualiza os valores exibidos no placar.
+        Chamado apos cada cobranca para refletir o novo estado do jogo.
+ 
+        Parameters
+        ----------
+        gols : int
+            Numero atualizado de gols.
+        vidas : int
+            Numero atualizado de vidas restantes.
+        cobranca : int
+            Numero da cobranca atual.
+        """
+        self.gols     = gols
+        self.vidas    = vidas
+        self.cobranca = cobranca
+        self._desenhar()  # Redesenha o HUD com os novos valores
  
 
